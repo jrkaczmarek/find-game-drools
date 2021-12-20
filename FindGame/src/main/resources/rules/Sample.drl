@@ -1,0 +1,592 @@
+package com.sample
+import java.util.*;
+import com.sample.DroolsTest.GUI;
+import java.util.Arrays;
+import javax.swing.JOptionPane;
+import java.util.List;
+import javax.swing.JFrame;
+
+declare Pytanie
+    pytanie: String
+    potencjalneOdpowiedzi: List
+    odpowiedz: String
+end
+
+declare FinalnaOdpowiedz
+    odpowiedz: String
+end
+
+rule "Init"
+    when
+    then
+        insert(new Pytanie("What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation?",  Arrays.asList("SHOOTERS", "RPGS", "STRATEGY", "VIRTUAL WORDS"), null)); 
+end
+
+function String chooseAnswer(JFrame frame, List odpowiedzi, String pytanie) {       
+    	
+    	GUI f = new GUI(odpowiedzi, pytanie);
+        synchronized(f.jButton) {
+            try {
+                f.jButton.wait();
+            } catch (InterruptedException ex) {
+                System.out.println("Interrupted");
+            }
+        }
+        f.dispose();
+    	return f.odpowiedzFinalna;
+}
+
+function void showFinalAnswer(String odpowiedz) {       
+    	JOptionPane.showMessageDialog(null, "Gra ktora wygrala: " + odpowiedz);
+}
+
+rule "Podanie odpowiedzi"
+    when
+		p: Pytanie(getOdpowiedz() == null)
+    then
+    	System.out.println(p.getPytanie());
+    	String x = chooseAnswer(null, p.getPotencjalneOdpowiedzi(), p.getPytanie());
+    	System.out.println(x);
+    	p.setOdpowiedz(x);
+        update(p);
+end
+
+rule "Finalna odpowiedz"
+    when
+		p: FinalnaOdpowiedz()
+    then
+    	System.out.println("Gra ktora wygrala: " + p.getOdpowiedz());
+    	showFinalAnswer(p.getOdpowiedz());
+end
+
+rule "What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation? -> SHOOTERS"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("SHOOTERS"), getPytanie().equals("What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation?"))
+	then
+    	insert(new Pytanie("Would you rather fight on the ground or while flying through space?", Arrays.asList("Flying through space", "On the ground"), null));
+end
+
+rule "What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation? -> RPGS"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("RPGS"), getPytanie().equals("What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation?"))
+	then
+    	insert(new Pytanie("What genre would you like? Swords and sorcery, starships, superheroes or something else?", Arrays.asList("Fantasy", "Science Fiction", "Superheroes", "Something completely different"), null));
+end
+
+rule "What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation? -> STRATEGY"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("STRATEGY"), getPytanie().equals("What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation?"))
+	then
+    	insert(new Pytanie("Would you like your wars and alliances in a fantasy setting, the real world, or 'the family'?", Arrays.asList("Fantasy", "Historical", "Mafia"), null));
+end
+
+rule "What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation? -> VIRTUAL WORDS"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("VIRTUAL WORDS"), getPytanie().equals("What type of game are you looking for? Do you want to hone the ultimate warrior, or build a mighty nation?"))
+	then
+    	insert(new Pytanie("Would you like a world with games built in, or would you like a completely freeform experience?", Arrays.asList("Built in games", "An open-ended world"), null));
+end
+
+rule "Would you rather fight on the ground or while flying through space? -> Flying through space"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Flying through space"), getPytanie().equals("Would you rather fight on the ground or while flying through space?"))
+	then
+    	insert(new Pytanie("What means more to you, enormous large scale battles or the ability to take precise control of your ship's every move?", Arrays.asList("Precise control", "Big battles"), null));
+end
+
+rule "Would you rather fight on the ground or while flying through space? -> On the ground"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("On the ground"), getPytanie().equals("Would you rather fight on the ground or while flying through space?"))
+	then
+    	insert(new Pytanie("Who would you rather fight, the military or monsters?", Arrays.asList("Monsters", "Military"), null));
+end
+
+rule "Who would you rather fight, the military or monsters? -> Monsters"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Monsters"), getPytanie().equals("Who would you rather fight, the military or monsters?"))
+	then
+    	insert(new Pytanie("Mummies or Werewolves?", Arrays.asList("Werewolves", "Mummies"), null));
+end
+
+rule "Who would you rather fight, the military or monsters? -> Military"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Military"), getPytanie().equals("Who would you rather fight, the military or monsters?"))
+	then
+    	insert(new Pytanie("Do you see yourself as a World War II vintage tank, or deadly cartoon soldier?", Arrays.asList("Tank", "Soldier"), null));
+end
+
+rule "Do you see yourself as a World War II vintage tank, or deadly cartoon soldier? -> Tank"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Tank"), getPytanie().equals("Do you see yourself as a World War II vintage tank, or deadly cartoon soldier?"))
+	then
+		insert(new FinalnaOdpowiedz("WORLD OF TANKS"));
+end
+
+rule "Do you see yourself as a World War II vintage tank, or deadly cartoon soldier? -> Soldier"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Soldier"), getPytanie().equals("Do you see yourself as a World War II vintage tank, or deadly cartoon soldier?"))
+	then
+		insert(new FinalnaOdpowiedz("LOST SAGA"));
+end
+
+rule "Mummies or Werewolves? -> Werewolves"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Werewolves"), getPytanie().equals("Mummies or Werewolves?"))
+	then
+		insert(new FinalnaOdpowiedz("WOLF TEAM"));
+end
+
+rule "Mummies or Werewolves? -> Mummies"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Mummies"), getPytanie().equals("Mummies or Werewolves?"))
+	then
+		insert(new FinalnaOdpowiedz("MISSION AGAINST TERROR"));
+end
+
+rule "What means more to you, enormous large scale battles or the ability to take precise control of your ship's every move? -> Precise control"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Precise control"), getPytanie().equals("What means more to you, enormous large scale battles or the ability to take precise control of your ship's every move?"))
+	then
+		insert(new FinalnaOdpowiedz("BATTLESTAR GALACTICA"));
+end
+
+rule "What means more to you, enormous large scale battles or the ability to take precise control of your ship's every move? -> Big battles"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Big battles"), getPytanie().equals("What means more to you, enormous large scale battles or the ability to take precise control of your ship's every move?"))
+	then
+		insert(new FinalnaOdpowiedz("ACE ONLINE"));
+end
+
+rule "Would you like a world with games built in, or would you like a completely freeform experience? -> Built in games"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Built in games"), getPytanie().equals("Would you like a world with games built in, or would you like a completely freeform experience?"))
+	then
+		insert(new Pytanie("Which do you prefer to build with: blocks or legos?", Arrays.asList("Blocks", "Legos"), null));
+end
+
+rule "Would you like a world with games built in, or would you like a completely freeform experience? -> An open-ended world"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("An open-ended world"), getPytanie().equals("Would you like a world with games built in, or would you like a completely freeform experience?"))
+	then
+		insert(new Pytanie("Are you looking mostly to chat and make new friends, or do you want to create things, too?", Arrays.asList("Chat", "Create"), null));
+end 
+
+rule "Are you looking mostly to chat and make new friends, or do you want to create things, too? -> Chat"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Chat"), getPytanie().equals("Are you looking mostly to chat and make new friends, or do you want to create things, too?"))
+	then
+		insert(new FinalnaOdpowiedz("IMVU"));
+end
+
+rule "Are you looking mostly to chat and make new friends, or do you want to create things, too? -> Create"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Create"), getPytanie().equals("Are you looking mostly to chat and make new friends, or do you want to create things, too?"))
+	then
+		insert(new FinalnaOdpowiedz("SECOND LIFE"));
+end
+
+rule "Which do you prefer to build with: blocks or legos? -> Blocks"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Blocks"), getPytanie().equals("Which do you prefer to build with: blocks or legos?"))
+	then
+		insert(new FinalnaOdpowiedz("MINECRAFT CLASSIC"));
+end
+
+rule "Which do you prefer to build with: blocks or legos? -> Legos"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Legos"), getPytanie().equals("Which do you prefer to build with: blocks or legos?"))
+	then
+		insert(new FinalnaOdpowiedz("ROBLOX"));
+end
+
+rule "Would you like your wars and alliances in a fantasy setting, the real world, or 'the family'? -> Mafia"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Mafia"), getPytanie().equals("Would you like your wars and alliances in a fantasy setting, the real world, or 'the family'?"))
+	then
+		insert(new FinalnaOdpowiedz("GODFATHER FIVE FAMILIES"));
+end
+
+rule "Would you like your wars and alliances in a fantasy setting, the real world, or 'the family'? -> Fantasy"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Fantasy"), getPytanie().equals("Would you like your wars and alliances in a fantasy setting, the real world, or 'the family'?"))
+	then
+    	insert(new Pytanie("Would you like a game with RPG elements such as dungeon exploration, or do you want to stick with straight-up strategy?", Arrays.asList("RPG elements.", "Just strategy, please."), null));
+end
+
+rule "Would you like a game with RPG elements such as dungeon exploration, or do you want to stick with straight-up strategy? -> RPG elements."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("RPG elements."), getPytanie().equals("Would you like a game with RPG elements such as dungeon exploration, or do you want to stick with straight-up strategy?"))
+	then
+		insert(new FinalnaOdpowiedz("CALL OF GODS"));
+end
+
+rule "Would you like a game with RPG elements such as dungeon exploration, or do you want to stick with straight-up strategy? -> Just strategy, please."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Just strategy, please."), getPytanie().equals("Would you like a game with RPG elements such as dungeon exploration, or do you want to stick with straight-up strategy?"))
+	then
+		insert(new FinalnaOdpowiedz("GREPOLIS"));
+end
+
+rule "Would you like your wars and alliances in a fantasy setting, the real world, or 'the family'? -> Historical"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Historical"), getPytanie().equals("Would you like your wars and alliances in a fantasy setting, the real world, or 'the family'?"))
+	then
+    	insert(new Pytanie("Would you like a casual game that you can put a few minutes into now and then, or a more involved game that might become an obsession?", Arrays.asList("Involved", "Casual"), null));
+end
+
+rule "Would you like a casual game that you can put a few minutes into now and then, or a more involved game that might become an obsession? -> Involved"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Involved"), getPytanie().equals("Would you like a casual game that you can put a few minutes into now and then, or a more involved game that might become an obsession?"))
+	then
+    	insert(new Pytanie("Do you want a game that can be played solo, or one that puts an emphasis on forming alliances?", Arrays.asList("It's all me.", "You can't conquer the world without friends."), null));
+end
+
+rule "Would you like a casual game that you can put a few minutes into now and then, or a more involved game that might become an obsession? -> Casual"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Casual"), getPytanie().equals("Would you like a casual game that you can put a few minutes into now and then, or a more involved game that might become an obsession?"))
+	then
+    	insert(new Pytanie("Do you prefer higher level strategic control of a battle, or real time tactical control over your troops?", Arrays.asList("Real time Tactics", "Strategic control"), null));
+end
+
+rule "Do you prefer higher level strategic control of a battle, or real time tactical control over your troops? -> Real time Tactics"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Real time Tactics"), getPytanie().equals("Do you prefer higher level strategic control of a battle, or real time tactical control over your troops?"))
+	then
+		insert(new FinalnaOdpowiedz("1100 AD"));
+end
+
+rule "Do you prefer higher level strategic control of a battle, or real time tactical control over your troops? -> Strategic control"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Strategic control"), getPytanie().equals("Do you prefer higher level strategic control of a battle, or real time tactical control over your troops?"))
+	then
+		insert(new FinalnaOdpowiedz("TRIBAL WARS"));
+end
+
+rule "Do you want a game that can be played solo, or one that puts an emphasis on forming alliances? -> It's all me."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("It's all me."), getPytanie().equals("Do you want a game that can be played solo, or one that puts an emphasis on forming alliances?"))
+	then
+		insert(new FinalnaOdpowiedz("CASTLE EMPIRE"));
+end
+
+rule "Do you want a game that can be played solo, or one that puts an emphasis on forming alliances? -> You can't conquer the world without friends."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("You can't conquer the world without friends."), getPytanie().equals("Do you want a game that can be played solo, or one that puts an emphasis on forming alliances?"))
+	then
+		insert(new FinalnaOdpowiedz("TRAVIAN"));
+end
+
+rule "What genre would you like? Swords and sorcery, starships, superheroes or something else? -> Fantasy"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Fantasy"), getPytanie().equals("What genre would you like? Swords and sorcery, starships, superheroes or something else?"))
+	then
+    	insert(new Pytanie("Have you played World of Warcraft?", Arrays.asList("Yes. Been there, done that.", "No?! 10 million players agree: this is the place to start."), null));
+end
+
+rule "What genre would you like? Swords and sorcery, starships, superheroes or something else? -> Science Fiction"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Science Fiction"), getPytanie().equals("What genre would you like? Swords and sorcery, starships, superheroes or something else?"))
+	then
+    	insert(new Pytanie("Would you like to go on ground-based missions or stick to your spaceship?", Arrays.asList("Beam me down, Scotty.", "I'll stick with outer space."), null));
+end
+
+rule "What genre would you like? Swords and sorcery, starships, superheroes or something else? -> Superheroes"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Superheroes"), getPytanie().equals("What genre would you like? Swords and sorcery, starships, superheroes or something else?"))
+	then
+    	insert(new Pytanie("Are you old enough to remember when 'The Incredibles' came out?", Arrays.asList("Yes", "No"), null));
+end
+
+rule "What genre would you like? Swords and sorcery, starships, superheroes or something else? -> Something completely different"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Something completely different"), getPytanie().equals("What genre would you like? Swords and sorcery, starships, superheroes or something else?"))
+	then
+    	insert(new Pytanie("Is being a vampire-hunting werewolf strange enough for you?", Arrays.asList("Yes", "No"), null));
+end
+
+rule "Is being a vampire-hunting werewolf strange enough for you? -> Yes"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes"), getPytanie().equals("Is being a vampire-hunting werewolf strange enough for you?"))
+	then
+    	insert(new FinalnaOdpowiedz("BITEFIGHT"));
+end
+
+rule "Is being a vampire-hunting werewolf strange enough for you? -> No"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No"), getPytanie().equals("Is being a vampire-hunting werewolf strange enough for you?"))
+	then
+    	insert(new FinalnaOdpowiedz("GLITCH"));
+end
+
+rule "Are you old enough to remember when 'The Incredibles' came out? -> Yes"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes"), getPytanie().equals("Are you old enough to remember when 'The Incredibles' came out?"))
+	then
+    	insert(new FinalnaOdpowiedz("DC UNIVERSE ONLINE"));
+end
+
+rule "Are you old enough to remember when 'The Incredibles' came out? -> No"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No"), getPytanie().equals("Are you old enough to remember when 'The Incredibles' came out?"))
+	then
+    	insert(new FinalnaOdpowiedz("SUPERHERO SQUAD ONLINE"));
+end
+
+rule "Would you like to go on ground-based missions or stick to your spaceship? -> Beam me down, Scotty."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Beam me down, Scotty."), getPytanie().equals("Would you like to go on ground-based missions or stick to your spaceship?"))
+	then
+    	insert(new FinalnaOdpowiedz("STAR TREK ONLINE"));
+end
+
+rule "Would you like to go on ground-based missions or stick to your spaceship? -> I'll stick with outer space."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("I'll stick with outer space."), getPytanie().equals("Would you like to go on ground-based missions or stick to your spaceship?"))
+	then
+    	insert(new Pytanie("Would you like a game that's easy to pick up or one that takes some getting used to but is huge, epic and involved?", Arrays.asList("Easy to get the hang of.", "The more epic, the better."), null));
+end
+
+rule "Would you like a game that's easy to pick up or one that takes some getting used to but is huge, epic and involved? -> Easy to get the hang of."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Easy to get the hang of."), getPytanie().equals("Would you like a game that's easy to pick up or one that takes some getting used to but is huge, epic and involved?"))
+	then
+		insert(new FinalnaOdpowiedz("DARK ORBIT"));
+end
+
+rule "Would you like a game that's easy to pick up or one that takes some getting used to but is huge, epic and involved? -> The more epic, the better."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("The more epic, the better."), getPytanie().equals("Would you like a game that's easy to pick up or one that takes some getting used to but is huge, epic and involved?"))
+	then
+		insert(new FinalnaOdpowiedz("EVE ONLINE"));
+end
+
+rule "Have you played World of Warcraft? -> No?! 10 million players agree: this is the place to start."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No?! 10 million players agree: this is the place to start."), getPytanie().equals("Have you played World of Warcraft?"))
+	then
+		insert(new FinalnaOdpowiedz("WORLD OF WARCRAFT"));
+end
+
+rule "Have you played World of Warcraft? -> Yes. Been there, done that."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes. Been there, done that."), getPytanie().equals("Have you played World of Warcraft?"))
+	then
+    	insert(new Pytanie("Are you looking for a game you can casually pick up now and then, or something more involved?", Arrays.asList("Casual", "Involved"), null));
+end
+
+rule "Are you looking for a game you can casually pick up now and then, or something more involved? -> Casual"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Casual"), getPytanie().equals("Are you looking for a game you can casually pick up now and then, or something more involved?"))
+	then
+    	insert(new Pytanie("But would you still like the option for more intense play when you have time for it?", Arrays.asList("Yes.", "No thanks."), null));
+end
+
+rule "But would you still like the option for more intense play when you have time for it? -> Yes."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes."), getPytanie().equals("But would you still like the option for more intense play when you have time for it?"))
+	then
+		insert(new FinalnaOdpowiedz("SHAIYA"));
+end
+
+rule "But would you still like the option for more intense play when you have time for it? -> No thanks."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No thanks."), getPytanie().equals("But would you still like the option for more intense play when you have time for it?"))
+	then
+    	insert(new Pytanie("Would you like more social features for group play, or a challenging game world to satisfy the solo player?", Arrays.asList("Solo", "Social"), null));
+end
+
+rule "Would you like more social features for group play, or a challenging game world to satisfy the solo player? ->  Solo"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Solo"), getPytanie().equals("Would you like more social features for group play, or a challenging game world to satisfy the solo player?"))
+	then
+		insert(new FinalnaOdpowiedz("ADVENTURE QUEST WORLDS"));
+end
+
+rule "Would you like more social features for group play, or a challenging game world to satisfy the solo player? ->  Social"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Social"), getPytanie().equals("Would you like more social features for group play, or a challenging game world to satisfy the solo player?"))
+	then
+		insert(new FinalnaOdpowiedz("DRAGON FABLE"));
+end
+
+rule "Are you looking for a game you can casually pick up now and then, or something more involved? -> Involved"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Involved"), getPytanie().equals("Are you looking for a game you can casually pick up now and then, or something more involved?"))
+	then
+    	insert(new Pytanie("How many digits are in your age?", Arrays.asList("1 or 'not sure'", "2 or more"), null));
+end
+
+rule "How many digits are in your age? -> 1 or 'not sure'"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("1 or 'not sure'"), getPytanie().equals("How many digits are in your age?"))
+	then
+    	insert(new FinalnaOdpowiedz("WIZARD 101"));
+end
+
+rule "How many digits are in your age? -> 2 or more"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("2 or more"), getPytanie().equals("How many digits are in your age?"))
+	then
+    	insert(new Pytanie("Do you like cute, wide-eyed Anime characters?", Arrays.asList("No.", "Yes."), null));
+end
+
+rule "Do you like cute, wide-eyed Anime characters? -> Yes."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes."), getPytanie().equals("Do you like cute, wide-eyed Anime characters?"))
+	then
+    	insert(new Pytanie("Would you like to have magical servants who do the drudge work of collecting materials and crafting for you?", Arrays.asList("Yes please!", "No, thanks, that's half the fun."), null));
+end
+
+rule "Would you like to have magical servants who do the drudge work of collecting materials and crafting for you? -> Yes please!"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes please!"), getPytanie().equals("Would you like to have magical servants who do the drudge work of collecting materials and crafting for you?"))
+	then
+		insert(new FinalnaOdpowiedz("GRAND FANTASIA"));
+end
+
+rule "Would you like to have magical servants who do the drudge work of collecting materials and crafting for you? -> No, thanks, that's half the fun."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No, thanks, that's half the fun."), getPytanie().equals("Would you like to have magical servants who do the drudge work of collecting materials and crafting for you?"))
+	then
+    	insert(new Pytanie("How are you at making commitments?", Arrays.asList("Not so great - I'd like a game where I can switch my class at any time.", "Great - I'd like a game with an emphasis on forging friendships and marriagies."), null));
+end
+
+rule "How are you at making commitments? -> Not so great - I'd like a game where I can switch my class at any time."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Not so great - I'd like a game where I can switch my class at any time."), getPytanie().equals("How are you at making commitments?"))
+	then
+		insert(new FinalnaOdpowiedz("EDEN ETERNAL"));
+end
+
+rule "How are you at making commitments? -> Great - I'd like a game with an emphasis on forging friendships and marriagies."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Great - I'd like a game with an emphasis on forging friendships and marriagies."), getPytanie().equals("How are you at making commitments?"))
+	then
+		insert(new FinalnaOdpowiedz("DREAM OF MIRROR"));
+end
+
+rule "Do you like cute, wide-eyed Anime characters? -> No."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No."), getPytanie().equals("Do you like cute, wide-eyed Anime characters?"))
+	then
+    	insert(new Pytanie("Do you enjoy large scale battles with dozens or hundreds of players fighting each other?", Arrays.asList("Yes.", "Not especially."), null));
+end
+
+rule "Do you enjoy large scale battles with dozens or hundreds of players fighting each other? -> Yes."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes."), getPytanie().equals("Do you enjoy large scale battles with dozens or hundreds of players fighting each other?"))
+	then
+    	insert(new Pytanie("Do you like the 'Lord of the Rings' trilogy?", Arrays.asList("Yes.", "Meh."), null));
+end
+
+rule "Do you like the 'Lord of the Rings' trilogy? -> Yes."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes."), getPytanie().equals("Do you like the 'Lord of the Rings' trilogy?"))
+	then
+    	insert(new FinalnaOdpowiedz("LORD OF THE RINGS ONLINE"));
+end
+
+rule "Do you like the 'Lord of the Rings' trilogy? -> Meh."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Meh."), getPytanie().equals("Do you like the 'Lord of the Rings' trilogy?"))
+	then
+    	insert(new Pytanie("Do you prefer a game with strong quests, or awesome pets?", Arrays.asList("Quests", "Pets"), null));
+end
+
+rule "Do you prefer a game with strong quests, or awesome pets? -> Quests"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Quests"), getPytanie().equals("Do you prefer a game with strong quests, or awesome pets?"))
+	then
+    	insert(new FinalnaOdpowiedz("4STORY"));
+end
+
+rule "Do you prefer a game with strong quests, or awesome pets? -> Pets"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Pets"), getPytanie().equals("Do you prefer a game with strong quests, or awesome pets?"))
+	then
+    	insert(new FinalnaOdpowiedz("AIKA"));
+end
+
+rule "Do you enjoy large scale battles with dozens or hundreds of players fighting each other? -> Not especially."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Not especially."), getPytanie().equals("Do you enjoy large scale battles with dozens or hundreds of players fighting each other?"))
+	then
+    	insert(new Pytanie("Are you looking for a game with an emphasis on player-vs-player (PvP) fighting?", Arrays.asList("Yes.", "No."), null));
+end
+
+rule "Are you looking for a game with an emphasis on player-vs-player (PvP) fighting? -> Yes."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes."), getPytanie().equals("Are you looking for a game with an emphasis on player-vs-player (PvP) fighting?"))
+	then
+    	insert(new Pytanie("Would you like to find a game as close as possible to World of Warcraft?", Arrays.asList("Yes", "No"), null));
+end
+
+rule "Would you like to find a game as close as possible to World of Warcraft? -> Yes"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Yes"), getPytanie().equals("Would you like to find a game as close as possible to World of Warcraft?"))
+	then
+    	insert(new FinalnaOdpowiedz("RUNES OF MAGIC"));
+end
+
+rule "Would you like to find a game as close as possible to World of Warcraft? -> No"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No"), getPytanie().equals("Would you like to find a game as close as possible to World of Warcraft?"))
+	then
+    	insert(new Pytanie("Which of these distinctive features appeals to you most?", Arrays.asList("Auto-pilot mode to grind for you.", "The chance to become a god.", "Hack-n-slash dungeon diving, like Diablo."), null));
+end
+
+rule "Which of these distinctive features appeals to you most? -> Auto-pilot mode to grind for you."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Auto-pilot mode to grind for you."), getPytanie().equals("Which of these distinctive features appeals to you most?"))
+	then
+		insert(new FinalnaOdpowiedz("CRYSTAL SAGA"));
+end
+
+rule "Which of these distinctive features appeals to you most? -> The chance to become a god."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("The chance to become a god."), getPytanie().equals("Which of these distinctive features appeals to you most?"))
+	then
+		insert(new FinalnaOdpowiedz("FORSAKEN WORLD"));
+end
+
+rule "Which of these distinctive features appeals to you most? -> Hack-n-slash dungeon diving, like Diablo."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Hack-n-slash dungeon diving, like Diablo."), getPytanie().equals("Which of these distinctive features appeals to you most?"))
+	then
+		insert(new FinalnaOdpowiedz("DRAKENSANG"));
+end
+
+rule "Are you looking for a game with an emphasis on player-vs-player (PvP) fighting? -> No."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("No."), getPytanie().equals("Are you looking for a game with an emphasis on player-vs-player (PvP) fighting?"))
+	then
+    	insert(new Pytanie("Are you looking for something based on the grand-daddy of RPGs, pen-and-paper Dungeons and Dragons? Or a more complex, involved combat system?", Arrays.asList("I want to perfect the art of crushing my enemies.", "I love D&D!"), null));
+end
+
+rule "Are you looking for something based on the grand-daddy of RPGs, pen-and-paper Dungeons and Dragons? Or a more complex, involved combat system? -> I want to perfect the art of crushing my enemies."
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("I want to perfect the art of crushing my enemies."), getPytanie().equals("Are you looking for something based on the grand-daddy of RPGs, pen-and-paper Dungeons and Dragons? Or a more complex, involved combat system?"))
+	then
+		insert(new FinalnaOdpowiedz("AGE OF CONAN"));
+end
+
+rule "Are you looking for something based on the grand-daddy of RPGs, pen-and-paper Dungeons and Dragons? Or a more complex, involved combat system? -> I love D&D!"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("I love D&D!"), getPytanie().equals("Are you looking for something based on the grand-daddy of RPGs, pen-and-paper Dungeons and Dragons? Or a more complex, involved combat system?"))
+	then
+    	insert(new Pytanie("Do you want an old-school D&D game with low system requirements, or a cutting edge 3D D&D experience?", Arrays.asList("Old-school", "Cutting edge"), null));
+end
+
+rule "Do you want an old-school D&D game with low system requirements, or a cutting edge 3D D&D experience? -> Old-school"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Old-school"), getPytanie().equals("Do you want an old-school D&D game with low system requirements, or a cutting edge 3D D&D experience?"))
+	then
+		insert(new FinalnaOdpowiedz("DARK SWORDS"));
+end
+
+rule "Do you want an old-school D&D game with low system requirements, or a cutting edge 3D D&D experience? -> Cutting edge"
+	when
+		Pytanie(getOdpowiedz() != null, getOdpowiedz().equals("Cutting edge"), getPytanie().equals("Do you want an old-school D&D game with low system requirements, or a cutting edge 3D D&D experience?"))
+	then
+		insert(new FinalnaOdpowiedz("DUNGEONS AND DRAGONS ONLINE"));
+end
